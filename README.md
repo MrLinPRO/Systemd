@@ -10,15 +10,17 @@
 cd /etc/default
 touch watchlog
 nano watchlog
-`# Configuration file for my watchlog service
-`# Place it to /etc/default
-`# File and word in that file that we will be monit
-`WORD="ALERT"
-`LOG=/var/log/watchlog.log
+
+`# Configuration file for my watchlog service`
+`# Place it to /etc/default`
+`# File and word in that file that we will be monit`
+`WORD="ALERT"`
+`LOG=/var/log/watchlog.log`
 
 Затем создаем /var/log/watchlog.log и пишем туда строки на своё усмотрение,
 плюс ключевое слово ‘ALERT’
 Создадим скрипт
+```
 cd
 cd /opt
 nano watchlog.sh
@@ -31,8 +33,8 @@ then
 logger "$DATE: I found word, Master!"
 else
 exit 0
-fi
-
+fi 
+```
 `Команда logger отправляет лог в системный журнал.`
 
 Добавим права на запуск файла:
