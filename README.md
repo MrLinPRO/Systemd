@@ -11,14 +11,17 @@ cd /etc/default
 touch watchlog
 nano watchlog
 
-`# Configuration file for my watchlog service`
-`# Place it to /etc/default`
-`# File and word in that file that we will be monit`
-`WORD="ALERT"`
-`LOG=/var/log/watchlog.log`
+```
+# Configuration file for my watchlog service`
+# Place it to /etc/default`
+# File and word in that file that we will be monit`
+WORD="ALERT"`
+LOG=/var/log/watchlog.log`
+```
 
-Затем создаем /var/log/watchlog.log и пишем туда строки на своё усмотрение,
-плюс ключевое слово ‘ALERT’
+`Затем создаем /var/log/watchlog.log и пишем туда строки на своё усмотрение,
+плюс ключевое слово ‘ALERT’`
+
 Создадим скрипт
 ```
 cd
@@ -38,9 +41,12 @@ fi
 `Команда logger отправляет лог в системный журнал.`
 
 Добавим права на запуск файла:
+```
 chmod +x /opt/watchlog.sh
+```
 
 Создадим юнит для сервиса:
+```
 cd /etc/systemd
 cd system/
 nano watchlog.service
@@ -51,8 +57,9 @@ Description=My watchlog service
 Type=oneshot
 EnvironmentFile=/etc/default/watchlog
 ExecStart=/opt/watchlog.sh $WORD $LOG
-
+```
 Создадим юнит для таймера:
+```
 [Unit]
 Description=Run watchlog script every 30 second
 
@@ -62,14 +69,22 @@ OnUnitActiveSec=30
 Unit=watchlog.service
 [Install]
 WantedBy=multi-user.target
+```
 Затем достаточно только запустить timer:
+```
 systemctl start watchlog.timer
-результат проверяем: tail -n 1000 /var/log/syslog  | grep word
-
-Установить spawn-fcgi и создать unit-файл (spawn-fcgi.sevice) с помощью переделки init-скрипта
-Устанавливаем spawn-fcgi и необходимые для него пакеты:
+```
+результат проверяем: 
+```
+tail -n 1000 /var/log/syslog  | grep word
+```
+`Установить spawn-fcgi и создать unit-файл (spawn-fcgi.sevice) с помощью переделки init-скрипта
+Устанавливаем spawn-fcgi и необходимые для него пакеты:`
+```
 apt install spawn-fcgi php php-cgi php-cli  apache2 libapache2-mod-fcgid -y
+```
 Необходимо создать файл с настройками для будущего сервиса в файле /etc/spawn-fcgi/fcgi.conf.
+```
 cd
 cd /etc
 mkdir spawn-fcgi
@@ -99,16 +114,19 @@ KillMode=process
 
 [Install]
 WantedBy=multi-user.target
-
+```
 Убеждаемся, что все успешно работает:
+```
 systemctl start spawn-fcgi
 systemctl status spawn-fcgi
-
+```
 Доработать unit-файл Nginx (nginx.service) для запуска нескольких инстансов сервера с разными конфигурационными файлами одновременно.
 Установим Nginx из стандартного репозитория:
+```
 apt install nginx -y
-
+```
 Для запуска нескольких экземпляров сервиса модифицируем исходный service для использования различной конфигурации, а также PID-файлов. Для этого создадим новый Unit для работы с шаблонами (/etc/systemd/system/nginx@.service)
+```
 cat >> /etc/systemd/system/nginx@.service
 # Stop dance for nginx
 # =======================
@@ -139,8 +157,10 @@ KillMode=mixed
 
 [Install]
 WantedBy=multi-user.target
+```
 Необходимо создать два файла конфигурации (/etc/nginx/nginx-first.conf, /etc/nginx/nginx-second.conf). Их можно сформировать из стандартного конфига /etc/nginx/nginx.conf, 
 с модификацией путей до PID-файлов и разделением по портам:
+```
 pid /run/nginx-first.pid;
 
 http {
@@ -151,20 +171,23 @@ http {
 #include /etc/nginx/sites-enabled/*;
 ….
 }
-
+```
 Проверим работу:
-
+```
 systemctl start nginx@first
 systemctl start nginx@second
+systemctl status nginx@first
 systemctl status nginx@second
-
+```
 Проверить можно несколькими способами, например, посмотреть, какие порты слушаются:
+```
 ss -tnulp | grep nginx
-
+```
 Или просмотреть список процессов:
+```
 ps afx | grep nginx
-
-`Результаты выполнения видны на приложенных скриншотах.`
+```
+`Результаты выполнения ДЗ видны на приложенных скриншотах.`
 
 
 
